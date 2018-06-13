@@ -44,6 +44,7 @@ def dijkstra(start_x,start_y,goal_x,goal_y,ox,oy,robot_reach):
     h=[]
     #dictionary that'll store 
     final_path=dict()
+    current_list=[]
     #every node in the heap will be of the form:
     #(cost,x,y,last node)
     heap.heappush(h,(0,start_x,start_y,-1,-1))
@@ -51,11 +52,13 @@ def dijkstra(start_x,start_y,goal_x,goal_y,ox,oy,robot_reach):
     map_=build_costmap(ox,oy,robot_reach)
     while 1:
         current=heap.heappop(h)
+        current_list.append(current)
         #final_path[(current[3],current[4])]
         #print(current[1],current[2])
         if show_animation:
             plt.plot(current[1],current[2],"xr")
-            plt.pause(0.0000000001)
+            if len(current_list) % 10 == 0:
+                plt.pause(0.001)
         if(current[1]==goal_x and current[2]==goal_y):
             print("Bullseye ;)")
             break
@@ -85,9 +88,9 @@ def main():
     start=time.time()
     start_x=10
     start_y=10
-    goal_x=30
+    goal_x=50
     goal_y=50
-    robot_reach=4
+    robot_reach=1
     print("Start at :",start_x,start_y)
     ox=[]
     oy=[]
