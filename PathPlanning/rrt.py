@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Fri Jun 15 07:13:40 2018
-
+Basic implementation of Rapidly Exploring Random Trees(RRT'S)
+References:
+http://msl.cs.uiuc.edu/~lavalle/papers/LavKuf01.pdf
 @author: kartikmadhira
 """
 
@@ -10,8 +9,6 @@ Created on Fri Jun 15 07:13:40 2018
 import matplotlib.pyplot as plt
 import math
 import random
-
-
 
 show_animation=True
 
@@ -124,11 +121,6 @@ def main():
         from_y=random.randint(0,60)
         rrt.find_nearest_node(from_x,from_y)
     rrt.draw_tree()
-    
-    
-    
-    
-    
     
     """
     rrt.add_edge(10,10,15,30,math.sqrt((10-20)**2+(20-30)**2))
