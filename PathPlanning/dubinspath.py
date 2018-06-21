@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
 """
 Implementation of Dubins Paths for nonholonomic robots. 
 
@@ -10,44 +9,12 @@ References:
 """
 
 import matplotlib.patches as mpatches
-
 import matplotlib.pyplot as plt
 import math
-#from pyplot import Figure, subplot
 
-#getting a polar form of the vector
-class Vector(object):
-    def __init__(self,mag,theta):
-        self.mag=mag
-        self.theta=theta
-        
 
 import math
 
-def rotate_arrow(origin, point, angle):
-    """
-    Rotate a point counterclockwise by a given angle around a given origin.
-
-    The angle should be given in radians.
-    """
-    ox, oy = origin
-    px, py = point
-    angle=angle-math.pi/4
-    qx = ox+math.cos(angle)* (px - ox) - math.sin(angle)* (py - oy)
-    qy = oy + math.sin(angle) * (px - ox) + math.cos(angle)* (py - oy)
-    return qx, qy
-
-def rotate_point(origin, point, angle):
-    """
-    Rotate a point counterclockwise by a given angle around a given origin.
-
-    The angle should be given in radians.
-    """
-    ox, oy = origin
-    px, py = point
-    qx = ox-math.cos(angle)* (px - ox) + math.sin(angle)* (py - oy)
-    qy = oy - math.sin(angle) * (px - ox) - math.cos(angle)* (py - oy)
-    return qx, qy
 
 def tan_coor(center_first,center_second,radius1,radius2):
     x1,y1=center_first
@@ -112,95 +79,89 @@ def cal_angle(start,tangent,center,turn,min_radius):
     return abs(theta),math.atan2(vector1_y,vector1_x),math.atan2(vector2_y,vector2_x)
 
 
-def calc_shortest_path(start,goal):
+def RSL(start,goal,min_radius):
     
-    #generating all left and right circles for each goal and start/initial point
-    right_x,right_y,left_x,left_y=lr_generate(start,5)
-    g_right_x,g_right_y,g_left_x,g_left_y=lr_generate(goal,5)
+    #generate only the left of goal and right of start circle
+    s_right_x,s_right_y,left_x,left_y=lr_generate(start,min_radius)
+    right_x,right_y,g_left_x,g_left_y=lr_generate(goal,min_radius)
 
-    #generating tangent coordinate for each of the circles
-    a,b=tan_coor((right_x,right_y),(g_left_x,g_left_y),min_radius,min_radius)
-    c,d=tan_coor((left_x,left_y),(g_right_x,g_right_y),min_radius,min_radius)
-    """
-    a--->right tangent coordinates of initial point
-    b--->left tangent coordinates goal left points
-    """
+    #generate the tangent points
+    start_tan,goal_tan=tan_coor((s_right_x,s_right_y),(g_left_x,g_left_y),min_radius,min_radius)
     
-min_radius=5
-fig=plt.figure(1)
-ax=fig.add_subplot(1,1,1)
-ax.axis('scaled')
-ax.axis([0,50,0,50])
+    ang_1,s_ang_1,e_ang_1=cal_angle((start[0],start[1]),(start_tan[0],start_tan[1]),(s_right_x,s_right_y),'r',min_radius)
+    ang_2,s_ang_2,e_ang_2=cal_angle((start[0],start[1]),(start_tan[2],start_tan[3]),(s_right_x,s_right_y),'r',min_radius)
+    ang_3,s_ang_3,e_ang_3=cal_angle((goal[0],goal[1]),(goal_tan[0],goal_tan[1]),(g_left_x,g_left_y),'l',min_radius)
+    ang_4,s_ang_4,e_ang_4=cal_angle((goal[0],goal[1]),(goal_tan[2],goal_tan[3]),(g_left_x,g_left_y),'l',min_radius)
 
-#intitial point
-start=(10,10,math.pi/3)
-goal=(40,30,-math.pi)
-
-arr1=plt.Arrow(10,10,s_plot_x,s_plot_y)
-#ax.add_patch(arr1)
-#ax.arrow(start[0],start[1],1*s_plot_x,1*s_plot_y,head_length=3,head_width=3,fc='r', ec='k')
-#ax.arrow(goal[0],goal[1],0.1*g_plot_x,0.1*g_plot_y,head_length=3,head_width=3,fc='r', ec='k')
-ax.arrow(start[0],start[1],10*math.cos(start[2]),10*math.sin(start[2]),head_length=3,head_width=3,fc='r', ec='k')
-
-
-right_x,right_y,left_x,left_y=lr_generate(start,5)
-g_right_x,g_right_y,g_left_x,g_left_y=lr_generate(goal,5)
-
-a,b=tan_coor((right_x,right_y),(g_left_x,g_left_y),min_radius,min_radius)
-c,d=tan_coor((left_x,left_y),(g_right_x,g_right_y),min_radius,min_radius)
-
-
-plt.plot([g_left_x,g_right_x],[g_left_y,g_right_y],"r-")
-plt.plot([left_x,right_x],[left_y,right_y],"r-")
-
-
-circle1=plt.Circle((left_x,left_y),min_radius,fill=False)
-circle2=plt.Circle((g_left_x,g_left_y),min_radius,fill=False)
-circle3=plt.Circle((right_x,right_y),min_radius,fill=False)
-circle4=plt.Circle((g_right_x,g_right_y),min_radius,fill=False)
-
-ax.add_patch(circle1)
-ax.add_patch(circle2)
-ax.add_patch(circle3)
-ax.add_patch(circle4)
-
-
-angle,start_angle,end_angle=cal_angle((goal[0],goal[1]),(b[2],b[3]),(g_left_x,g_left_y),'l',min_radius)
-
-angle1,start_angle1,end_angle1=cal_angle((start[0],start[1]),(b[0],b[1]),(right_x,right_y),'r',min_radius)
-print(angle*180/math.pi,angle1*180/math.pi)
-ax.arrow(goal[0],goal[1],10*math.cos(goal[2]),10*math.sin(goal[2]),head_length=3,head_width=3,fc='r', ec='k')
-ax.arrow(goal[0],goal[1],10*math.cos(start[2]+(angle-angle1)),10*math.sin(start[2]+(angle-math.pi-angle1)),head_length=3,head_width=3,fc='r', ec='k')
-
-arc1=mpatches.Arc([g_left_x, g_left_y], 10, 10, angle=0, theta1=end_angle*180/math.pi, theta2=start_angle*180/math.pi,color="green")
-ax.add_patch(arc1)
-
-
-
-arc=mpatches.Arc([right_x,right_y], 10, 10, angle=0, theta1=end_angle1*180/math.pi, theta2=start_angle1*180/math.pi,color="green")
-ax.add_patch(arc)
+    switch=False
+    if(start[2]-(ang_1+ang_3)==goal[2]):
+        print('1')
+        s_ang=ang_1
+        g_ang=ang_3
+        line_s_x,line_s_y=start_tan[0],start_tan[1]
+        line_g_x,line_g_y=goal_tan[0],goal_tan[1]
+        s_st_ang,s_e_ang=s_ang_1,e_ang_1
+        g_st_ang,g_e_ang=s_ang_3,e_ang_3
+        switch=True
+        
+    elif(start[2]-(ang_1+ang_4)==goal[2]):
+        print('2')
+        s_ang=ang_1
+        g_ang=ang_4
+        line_s_x,line_s_y=start_tan[0],start_tan[1]
+        line_g_x,line_g_y=goal_tan[2],goal_tan[3]
+        s_st_ang,s_e_ang=s_ang_1,e_ang_1
+        g_st_ang,g_e_ang=s_ang_4,e_ang_4
+        switch=True
+    
+    elif(start[2]-(ang_2+ang_3)==goal[2]):
+        print('3')
+        s_ang=ang_2
+        g_ang=ang_3
+        line_s_x,line_s_y=start_tan[2],start_tan[3]
+        line_g_x,line_g_y=goal_tan[0],goal_tan[1]
+        s_st_ang,s_e_ang=s_ang_2,e_ang_2
+        g_st_ang,g_e_ang=s_ang_3,e_ang_3
+        switch=True
+    
+    elif(start[2]-(ang_2+ang_4)==goal[2]):
+        print('4')
+        s_ang=ang_2
+        g_ang=ang_4
+        line_s_x,line_s_y=start_tan[2],start_tan[3]
+        line_g_x,line_g_y=goal_tan[2],goal_tan[3]
+        s_st_ang,s_e_ang=s_ang_2,e_ang_2
+        g_st_ang,g_e_ang=s_ang_4,e_ang_4
+        switch=True
+    cost=(s_ang/360)*2*math.pi+(g_ang/360)*2*math.pi+math.sqrt((line_s_x-line_g_x)**2+(line_s_y-line_g_y)**2)
+    if(switch==True):
+        return (cost,True,(s_st_ang,s_e_ang,s_right_x,s_right_y),(g_st_ang,g_e_ang,g_left_x,g_left_y))
 
 
-#plt.plot([-left[0],-left[1]],[-left[1],-left[0]],"r-")
+def main():
+    min_radius=5
+    fig=plt.figure(1)
+    ax=fig.add_subplot(1,1,1)
+    ax.axis('scaled')
+    ax.axis([0,50,0,50])
+    
+    #intitial point
+    start=(10,10,math.pi/2)
+    goal=(40,30,-3*math.pi/2)
+    
+    ax.arrow(start[0],start[1],10*math.cos(start[2]),10*math.sin(start[2]),head_length=3,head_width=3,fc='r', ec='k')
+    ax.arrow(goal[0],goal[1],10*math.cos(goal[2]),10*math.sin(goal[2]),head_length=3,head_width=3,fc='r', ec='k')
+    
+    x=RSL(start,goal,min_radius)
+    
+    arc1=mpatches.Arc([x[2][2], x[2][3]], 10, 10, angle=0, theta1=x[2][1]*180/math.pi, theta2=x[2][0]*180/math.pi,color="green")
+    ax.add_patch(arc1)
+    arc2=mpatches.Arc([x[3][2], x[3][3]], 10, 10, angle=0, theta1=x[3][1]*180/math.pi, theta2=x[3][0]*180/math.pi,color="green")
+    ax.add_patch(arc2)
 
-plt.plot(b[2],b[3],"xr")
-plt.plot(b[0],b[1],"xr")
 
-plt.plot(a[0],a[1],"xr")
-plt.plot(a[2],a[3],"xr")
-plt.plot(c[2],c[3],"xr")
-plt.plot(c[0],c[1],"xr")
-plt.plot(d[0],d[1],"xr")
-plt.plot(d[2],d[3],"xr")
-
-
-
-
-
-
-
-
-
+if __name__ == '__main__':
+    main()
 
 
 
