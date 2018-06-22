@@ -79,63 +79,23 @@ def cal_angle(start,tangent,center,turn,min_radius):
     return abs(theta),math.atan2(vector1_y,vector1_x),math.atan2(vector2_y,vector2_x)
 
 
+
 def RSL(start,goal,min_radius):
     
     #generate only the left of goal and right of start circle
     s_right_x,s_right_y,left_x,left_y=lr_generate(start,min_radius)
     right_x,right_y,g_left_x,g_left_y=lr_generate(goal,min_radius)
-
-    #generate the tangent points
+    
     start_tan,goal_tan=tan_coor((s_right_x,s_right_y),(g_left_x,g_left_y),min_radius,min_radius)
-    
+    #generate the tangent points
     ang_1,s_ang_1,e_ang_1=cal_angle((start[0],start[1]),(start_tan[0],start_tan[1]),(s_right_x,s_right_y),'r',min_radius)
-    ang_2,s_ang_2,e_ang_2=cal_angle((start[0],start[1]),(start_tan[2],start_tan[3]),(s_right_x,s_right_y),'r',min_radius)
-    ang_3,s_ang_3,e_ang_3=cal_angle((goal[0],goal[1]),(goal_tan[0],goal_tan[1]),(g_left_x,g_left_y),'l',min_radius)
-    ang_4,s_ang_4,e_ang_4=cal_angle((goal[0],goal[1]),(goal_tan[2],goal_tan[3]),(g_left_x,g_left_y),'l',min_radius)
-
-    switch=False
-    if(start[2]-(ang_1+ang_3)==goal[2]):
-        print('1')
-        s_ang=ang_1
-        g_ang=ang_3
-        line_s_x,line_s_y=start_tan[0],start_tan[1]
-        line_g_x,line_g_y=goal_tan[0],goal_tan[1]
-        s_st_ang,s_e_ang=s_ang_1,e_ang_1
-        g_st_ang,g_e_ang=s_ang_3,e_ang_3
-        switch=True
-        
-    elif(start[2]-(ang_1+ang_4)==goal[2]):
-        print('2')
-        s_ang=ang_1
-        g_ang=ang_4
-        line_s_x,line_s_y=start_tan[0],start_tan[1]
-        line_g_x,line_g_y=goal_tan[2],goal_tan[3]
-        s_st_ang,s_e_ang=s_ang_1,e_ang_1
-        g_st_ang,g_e_ang=s_ang_4,e_ang_4
-        switch=True
+    ang_2,s_ang_2,e_ang_2=cal_angle((goal[0],goal[1]),(goal_tan[2],goal_tan[3]),(g_left_x,g_left_y),'l',min_radius)
     
-    elif(start[2]-(ang_2+ang_3)==goal[2]):
-        print('3')
-        s_ang=ang_2
-        g_ang=ang_3
-        line_s_x,line_s_y=start_tan[2],start_tan[3]
-        line_g_x,line_g_y=goal_tan[0],goal_tan[1]
-        s_st_ang,s_e_ang=s_ang_2,e_ang_2
-        g_st_ang,g_e_ang=s_ang_3,e_ang_3
-        switch=True
+    cost=((ang_1/360)+(ang_2/360))*2*math.pi*min_radius+(start_tan[0]-goal_tan[2])**2+(start_tan[1]-goal_tan[3]**2)
     
-    elif(start[2]-(ang_2+ang_4)==goal[2]):
-        print('4')
-        s_ang=ang_2
-        g_ang=ang_4
-        line_s_x,line_s_y=start_tan[2],start_tan[3]
-        line_g_x,line_g_y=goal_tan[2],goal_tan[3]
-        s_st_ang,s_e_ang=s_ang_2,e_ang_2
-        g_st_ang,g_e_ang=s_ang_4,e_ang_4
-        switch=True
-    cost=(s_ang/360)*2*math.pi+(g_ang/360)*2*math.pi+math.sqrt((line_s_x-line_g_x)**2+(line_s_y-line_g_y)**2)
-    if(switch==True):
-        return (cost,True,(s_st_ang,s_e_ang,s_right_x,s_right_y),(g_st_ang,g_e_ang,g_left_x,g_left_y))
+    return (cost,(s_right_x,s_right_y,g_left_x,g_left_y),(s_ang_1,e_ang_1,start_tan[0],start_tan[1]),(s_ang_2,e_ang_2,goal_tan[2],goal_tan[3]))
+    
+    
 
 
 def main():
@@ -143,20 +103,20 @@ def main():
     fig=plt.figure(1)
     ax=fig.add_subplot(1,1,1)
     ax.axis('scaled')
-    ax.axis([0,50,0,50])
+    ax.axis([0,60,0,60])
     
     #intitial point
-    start=(10,10,math.pi/2)
-    goal=(40,30,-math.pi)
+    start=(40,10,math.pi/2)
+    goal=(40,30,-math.pi/0.45)
     
-    ax.arrow(start[0],start[1],10*math.cos(start[2]),10*math.sin(start[2]),head_length=3,head_width=3,fc='r', ec='k')
-    ax.arrow(goal[0],goal[1],10*math.cos(goal[2]),10*math.sin(goal[2]),head_length=3,head_width=3,fc='r', ec='k')
-    
-    x=RSL(start,goal,min_radius)
-    
-    arc1=mpatches.Arc([x[2][2], x[2][3]], 10, 10, angle=0, theta1=x[2][1]*180/math.pi, theta2=x[2][0]*180/math.pi,color="green")
+    ax.arrow(start[0],start[1],10*math.cos(start[2]),10*math.sin(start[2]),head_length=3,head_width=3,fc='b', ec='k')
+    ax.arrow(goal[0],goal[1],10*math.cos(goal[2]),10*math.sin(goal[2]),head_length=3,head_width=3,fc='b', ec='k')
+
+    h=RSL(start,goal,min_radius)
+    arc1=mpatches.Arc([h[1][0], h[1][1]], 10, 10, angle=0, theta1=h[2][1]*180/math.pi, theta2=h[2][0]*180/math.pi,color="green")
     ax.add_patch(arc1)
-    arc2=mpatches.Arc([x[3][2], x[3][3]], 10, 10, angle=0, theta1=x[3][1]*180/math.pi, theta2=x[3][0]*180/math.pi,color="green")
+    arc2=mpatches.Arc([h[1][2], h[1][3]], 10, 10, angle=0, theta1=h[3][1]*180/math.pi, theta2=h[3][0]*180/math.pi,color="green")
+    plt.plot([h[2][2],h[3][2]],[h[2][3],h[3][3]],'g-',linewidth=1)
     ax.add_patch(arc2)
 
 
