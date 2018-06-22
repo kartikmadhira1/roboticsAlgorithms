@@ -147,7 +147,7 @@ def main():
     
     #intitial point
     start=(10,10,math.pi/2)
-    goal=(40,30,-3*math.pi/2)
+    goal=(40,30,-math.pi)
     
     ax.arrow(start[0],start[1],10*math.cos(start[2]),10*math.sin(start[2]),head_length=3,head_width=3,fc='r', ec='k')
     ax.arrow(goal[0],goal[1],10*math.cos(goal[2]),10*math.sin(goal[2]),head_length=3,head_width=3,fc='r', ec='k')
@@ -163,28 +163,3 @@ def main():
 if __name__ == '__main__':
     main()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-""
