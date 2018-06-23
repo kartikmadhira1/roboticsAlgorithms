@@ -12,10 +12,6 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import math
 
-
-import math
-
-
 def tan_coor(center_first,center_second,radius1,radius2):
     x1,y1=center_first
     x2,y2=center_second
@@ -91,11 +87,54 @@ def RSL(start,goal,min_radius):
     ang_1,s_ang_1,e_ang_1=cal_angle((start[0],start[1]),(start_tan[0],start_tan[1]),(s_right_x,s_right_y),'r',min_radius)
     ang_2,s_ang_2,e_ang_2=cal_angle((goal[0],goal[1]),(goal_tan[2],goal_tan[3]),(g_left_x,g_left_y),'l',min_radius)
     
-    cost=((ang_1/360)+(ang_2/360))*2*math.pi*min_radius+(start_tan[0]-goal_tan[2])**2+(start_tan[1]-goal_tan[3]**2)
+    cost=((abs(s_ang_1-e_ang_1)/360)+(abs(s_ang_2-e_ang_2)/360))*2*math.pi*min_radius+(start_tan[0]-goal_tan[2])**2+(start_tan[1]-goal_tan[3]**2)
     
-    return (cost,(s_right_x,s_right_y,g_left_x,g_left_y),(s_ang_1,e_ang_1,start_tan[0],start_tan[1]),(s_ang_2,e_ang_2,goal_tan[2],goal_tan[3]))
+    return (cost,(s_right_x,s_right_y,g_left_x,g_left_y),(s_ang_1,e_ang_1,start_tan[0],start_tan[1]),(s_ang_2,e_ang_2,goal_tan[2],goal_tan[3]),'RSL')
+  
+def LSL(start,goal,min_radius):
     
+    #generate only the left of goal and right of start circle
+    s_right_x,s_right_y,left_x,left_y=lr_generate(start,min_radius)
+    right_x,right_y,g_left_x,g_left_y=lr_generate(goal,min_radius)
     
+    start_tan,goal_tan=tan_coor((left_x,left_y),(g_left_x,g_left_y),min_radius,min_radius)
+    #generate the tangent points
+    ang_1,s_ang_1,e_ang_1=cal_angle((start[0],start[1]),(start_tan[2],start_tan[3]),(left_x,left_y),'l',min_radius)
+    ang_2,s_ang_2,e_ang_2=cal_angle((goal[0],goal[1]),(goal_tan[2],goal_tan[3]),(g_left_x,g_left_y),'l',min_radius)
+    
+    cost=((abs(s_ang_1-e_ang_1)/360)+(abs(s_ang_2-e_ang_2)/360))*2*math.pi*min_radius+(start_tan[2]-goal_tan[2])**2+(start_tan[3]-goal_tan[3]**2)
+    
+    return (cost,(left_x,left_y,g_left_x,g_left_y),(e_ang_1,s_ang_1,start_tan[2],start_tan[3]),(s_ang_2,e_ang_2,goal_tan[2],goal_tan[3]),'LSL')    
+
+def RSR(start,goal,min_radius):
+    
+    #generate only the left of goal and right of start circle
+    s_right_x,s_right_y,left_x,left_y=lr_generate(start,min_radius)
+    right_x,right_y,g_left_x,g_left_y=lr_generate(goal,min_radius)
+    
+    start_tan,goal_tan=tan_coor((s_right_x,s_right_y),(right_x,right_y),min_radius,min_radius)
+    #generate the tangent points
+    ang_1,s_ang_1,e_ang_1=cal_angle((start[0],start[1]),(start_tan[0],start_tan[1]),(s_right_x,s_right_y),'r',min_radius)
+    ang_2,s_ang_2,e_ang_2=cal_angle((goal[0],goal[1]),(goal_tan[0],goal_tan[1]),(right_x,right_y),'r',min_radius)
+    
+    cost=((abs(s_ang_1-e_ang_1)/360)+(abs(s_ang_2-e_ang_2)/360))*2*math.pi*min_radius+(start_tan[0]-goal_tan[0])**2+(start_tan[1]-goal_tan[1]**2)
+    
+    return (cost,(s_right_x,s_right_y,right_x,right_y),(s_ang_1,e_ang_1,start_tan[0],start_tan[1]),(e_ang_2,s_ang_2,goal_tan[0],goal_tan[1]),'RSR')
+
+def LSR(start,goal,min_radius):
+    
+    #generate only the left of goal and right of start circle
+    s_right_x,s_right_y,left_x,left_y=lr_generate(start,min_radius)
+    right_x,right_y,g_left_x,g_left_y=lr_generate(goal,min_radius)
+    
+    start_tan,goal_tan=tan_coor((left_x,left_y),(right_x,right_y),min_radius,min_radius)
+    #generate the tangent points
+    ang_1,s_ang_1,e_ang_1=cal_angle((start[0],start[1]),(start_tan[2],start_tan[3]),(left_x,left_y),'l',min_radius)
+    ang_2,s_ang_2,e_ang_2=cal_angle((goal[0],goal[1]),(goal_tan[0],goal_tan[1]),(right_x,right_y),'r',min_radius)
+    
+    cost=((abs(s_ang_1-e_ang_1)/360)+(abs(s_ang_2-e_ang_2)/360))*2*math.pi*min_radius+(start_tan[2]-goal_tan[2])**2+(start_tan[3]-goal_tan[3]**2)
+    
+    return (cost,(left_x,left_y,right_x,right_y),(e_ang_1,s_ang_1,start_tan[2],start_tan[3]),(e_ang_2,s_ang_2,goal_tan[0],goal_tan[1]),'LSR')
 
 
 def main():
@@ -103,19 +142,30 @@ def main():
     fig=plt.figure(1)
     ax=fig.add_subplot(1,1,1)
     ax.axis('scaled')
-    ax.axis([0,60,0,60])
+    ax.axis([0,50,0,50])
     
+    paths=[LSL,RSR,RSL,LSR]
     #intitial point
-    start=(40,10,math.pi/2)
-    goal=(40,30,-math.pi/0.45)
+    start=(10,10,math.pi/2)
+    goal=(40,30,math.pi/2)
     
-    ax.arrow(start[0],start[1],10*math.cos(start[2]),10*math.sin(start[2]),head_length=3,head_width=3,fc='b', ec='k')
+    #start arrow
+    ax.arrow(start[0],start[1],10*math.cos(start[2]),10*math.sin(start[2]),head_length=3,head_width=3,fc='r', ec='k')
+    #goal arrow
     ax.arrow(goal[0],goal[1],10*math.cos(goal[2]),10*math.sin(goal[2]),head_length=3,head_width=3,fc='b', ec='k')
-
-    h=RSL(start,goal,min_radius)
-    arc1=mpatches.Arc([h[1][0], h[1][1]], 10, 10, angle=0, theta1=h[2][1]*180/math.pi, theta2=h[2][0]*180/math.pi,color="green")
+    cost_final=math.inf
+    for path in paths:
+        ret_val=path(start,goal,min_radius)
+        if(ret_val[0]<cost_final):
+            final_path=ret_val
+            cost_final=ret_val[0]
+        
+    h=final_path
+    #h=RSL(start,goal,min_radius)
+    print(final_path[4])
+    arc1=mpatches.Arc([h[1][0], h[1][1]], min_radius*2, min_radius*2, angle=0, theta1=h[2][1]*180/math.pi, theta2=h[2][0]*180/math.pi,color="green")
     ax.add_patch(arc1)
-    arc2=mpatches.Arc([h[1][2], h[1][3]], 10, 10, angle=0, theta1=h[3][1]*180/math.pi, theta2=h[3][0]*180/math.pi,color="green")
+    arc2=mpatches.Arc([h[1][2], h[1][3]], min_radius*2, min_radius*2, angle=0, theta1=h[3][1]*180/math.pi, theta2=h[3][0]*180/math.pi,color="green")
     plt.plot([h[2][2],h[3][2]],[h[2][3],h[3][3]],'g-',linewidth=1)
     ax.add_patch(arc2)
 
