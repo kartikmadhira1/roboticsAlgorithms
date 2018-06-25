@@ -74,8 +74,13 @@ class RRT(object):
     
     def draw_tree(self,obstacle_list,goal_x,goal_y,start_x,start_y,ox,oy):
         plt.clf()
+        plt.axis("equal")
+        plt.grid(True)
         plt.plot(ox, oy, ".k")
         plt.plot(goal_x,goal_y,"xc")
+        plt.plot(start_x,start_y,"xc")
+        plt.text(30,65,s='RRT',horizontalalignment='center',color="k",fontsize=20)
+        plt.pause(2)
         for a in obstacle_list:
             plt.plot(a[0],a[1],"hb",ms=30*a[2],)
         for edges in self.edges:
@@ -84,11 +89,12 @@ class RRT(object):
             to_node_x=edges.end_node.x_cor
             to_node_y=edges.end_node.y_cor
             plt.plot([from_node_x,to_node_x],[from_node_y,to_node_y],"-g")
-            plt.pause(0.0001)
+            plt.pause(0.4)
         
         plt.axis([0, 60, 0, 60])
         plt.grid(True)
-        plt.pause(0.000001)
+        plt.pause(0.0000000001)
+        
         #plt.axis("equal")
         return True
       
@@ -130,10 +136,11 @@ class RRT(object):
 def main():
     ox=[]
     oy=[]
-    goal_x=58
-    goal_y=58
-    start_x=10
-    start_y=10
+    goal_x=35
+    goal_y=45
+    start_x=1
+    start_y=1
+    goal_radius=3
     plt.clf()
     #plotting the simulation area
     for i in range(60):
@@ -152,9 +159,15 @@ def main():
     #obstacles that will expanded as circles
     obstacleList = [
         (20,30, 3),
-        (10,50, 3),
+        (10,50, 1),
+        (20, 40, 2),
         (30, 20, 2),
-        (40, 10, 2),
+        (40, 20, 1),
+        (40, 10, 1),
+        (50,10, 1),
+        (45, 55, 1),
+        (50, 47, 1),
+        (9, 11, 1),
         (30, 30, 2),
         ]
     
