@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import math
 import random
 
+
+#this generates tangent coordinates for each of the circle involved.
 def tan_coor(center_first,center_second,radius1,radius2):
     x1,y1=center_first
     x2,y2=center_second
@@ -47,7 +49,7 @@ def tan_coor(center_first,center_second,radius1,radius2):
     
     return ([left_x_1,left_y_1,right_x_1,right_y_1],[left_x_2,left_y_2,right_x_2,right_y_2])
 
-
+#Generates coordinates for the left and right traversing circles areound initial point.
 def lr_generate(vector,min_radius):
     x,y,theta=vector
     left_angle=theta-math.pi/2
@@ -60,6 +62,7 @@ def lr_generate(vector,min_radius):
     
     return left_circle_x,left_circle_y,right_circle_x,right_circle_y
 
+#Generates tangent angles to traverse by checking tangent points and initial point.
 def cal_angle(start,tangent,center,turn,min_radius):
     
     vector1_x=start[0]-center[0]
