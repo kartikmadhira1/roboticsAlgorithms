@@ -29,7 +29,7 @@ class Edge(object):
 
 #the constructor is a list of nodes and edges
 class RRT(object):
-    def __init__(self,edges=[],nodes=[],path=dict(),step_dist=3,cost_radius=4):
+    def __init__(self,edges=[],nodes=[],path=dict(),step_dist=3,cost_radius=5):
         self.root=None
         self.edges=edges
         self.nodes=nodes
@@ -137,7 +137,7 @@ def main():
     ox=[]
     oy=[]
     goal_x=35
-    goal_y=45
+    goal_y=40
     start_x=1
     start_y=1
     goal_radius=3
@@ -167,11 +167,10 @@ def main():
         (50,10, 1),
         (45, 55, 1),
         (50, 47, 1),
-        (9, 11, 1),
         (30, 30, 2),
         ]
     
-    rrt=RRT(step_dist=3,cost_radius=4)
+    rrt=RRT(step_dist=3,cost_radius=5)
     rrt.set_root(start_x,start_y)
     
     
