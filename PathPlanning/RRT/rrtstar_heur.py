@@ -82,7 +82,7 @@ class RRT(object):
         plt.plot(ox, oy, ".k")
         plt.plot(goal_x,goal_y,"xc")
         plt.plot(start_x,start_y,"xc")
-        plt.text(30,65,s='RRT*',horizontalalignment='center',color="k",fontsize=20)
+        plt.text(30,65,s='RRT* (Heuristics)',horizontalalignment='center',color="k",fontsize=20)
         for a in obstacle_list:
             plt.plot(a[0],a[1],"hb",ms=30*a[2],)
         for edges in self.edges:
@@ -160,8 +160,8 @@ class RRT(object):
 def main():
     ox=[]
     oy=[]
-    goal_x=50
-    goal_y=58
+    goal_x=35
+    goal_y=48
     start_x=1
     start_y=1
     goal_radius=3
