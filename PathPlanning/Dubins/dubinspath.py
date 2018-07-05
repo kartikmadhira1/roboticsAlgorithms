@@ -143,29 +143,34 @@ def LSR(start,goal,min_radius):
 
 def main():
     min_radius=5
+    #initiate all the functions for paths to be maintained
     paths=[LSL,RSR,RSL,LSR]
-    #intitial point
-    for _ in range(10):
+    #generate n number of paths where we randomly intiate start and goal configurations
+    for _ in range(20):
         fig=plt.figure(1)
         ax=fig.add_subplot(1,1,1)
         ax.axis('scaled')
         ax.axis([0,100,0,100])
+        #start random coordinates.
         s_x=random.randint(10,80)
         s_y=random.randint(10,80)
+        #goal random coordinates.
         g_x=random.randint(10,80)
         g_y=random.randint(10,80)
+        #start and goal angles wrt origin.
         s_angle=random.uniform(0,2)
         g_angle=random.uniform(0,2)
         start=(s_x,s_y,s_angle*math.pi)
         goal=(g_x,g_y,g_angle*math.pi)
         d=math.sqrt((s_x-g_x)**2+(g_x-g_y)**2)
+        #check for circles being too close to each other
         if(d>=(min_radius*4.5)):
             #start arrow
             arrow1=ax.arrow(start[0],start[1],10*math.cos(start[2]),10*math.sin(start[2]),head_length=3,head_width=3,fc='r', ec='k',label='Start Configuration' )
             #goal arrow
             arrow2=ax.arrow(goal[0],goal[1],10*math.cos(goal[2]),10*math.sin(goal[2]),head_length=3,head_width=3,fc='b', ec='k',label='End Configuration')
             plt.legend([arrow1,arrow2,],['Start configuration','Goal configuration'])
-            
+            #bubble out the path with the least cost.
             cost_final=math.inf
             for path in paths:
                 ret_val=path(start,goal,min_radius)
