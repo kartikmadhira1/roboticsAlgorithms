@@ -4,9 +4,18 @@ An implementation of the Extended Kalman Filter.
 @author: kartikmadhira
 """
 
-def update(mean1, var1, mean2, var2):
-    new_mean =(mean1*var1+mean2*var2)/(var1+var2)
-    new_var =1/((1/(var1)+(1/(var2))))
-    return [new_mean, new_var]
+#This is a sympy snippet to calculate Jacobian for measurement and observation models
+"""
+import sympy
+from sympy.abc import alpha, x, y, v, w, R, theta,omega
+from sympy import symbols, Matrix
+sympy.init_printing(use_latex="mathjax", fontsize='18pt')
 
-print (update(10.,8.,13., 2.))
+fxu = Matrix([[x+v*time*sympy.cos(theta)],
+              [y+v*time*sympy.sin(theta)],
+              [theta+omega*time],
+              [v]]
+                )
+F = fxu.jacobian(Matrix([x, y, theta,v]))
+F
+"""
