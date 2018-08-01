@@ -2,6 +2,10 @@
 An implementation of the Extended Kalman Filter.
 
 @author: kartikmadhira
+
+References:
+    1. https://github.com/AtsushiSakai/PythonRobotics
+    2. Roger Labbe's repo on Kalman Filters.
 """
 
 #Flow of the code is as follows:
@@ -26,18 +30,18 @@ Q=np.matrix(np.diag([0.1, 0.1, math.radians(1.0), 1.0]))**2
 #observation covariance matrix
 R=np.matrix(np.diag([1.0, math.radians(40.0)]))**2
 #input noise covariance matrix
-Q_obs = np.diag([0.5, 0.5])**2
-U = np.diag([1.0, math.radians(30.0)])**2
+Q_obs = np.diag([0.3, 0.3])**2
+U = np.diag([1.0, math.radians(20.0)])**2
 
 def input_model():
     v=1 #m/s
-    omega=0.2 #rad/s
+    omega=0.1 #rad/s
     u=np.matrix([v, omega]).T
     return u
 
 def input_model_noise():
     v=1
-    omega=0.2
+    omega=0.1
     u=np.matrix([v+np.random.randn()*U[0,0],omega+math.radians(np.random.randn()*U[1,1])]).T
     return u
 
@@ -145,53 +149,52 @@ def plot_covariance_ellipse(xEst, PEst):
 
 
 def main():
-    x=np.matrix(np.zeros((4,1))) #x=[x y theta v](transpose)
+    x_pred=np.matrix(np.zeros((4,1))) #x=[x y theta v](transpose)
     #initial covariance matrix
-    x_wo_filter=np.matrix(np.zeros((4,1)))
+    x_ideal=np.matrix(np.zeros((4,1)))
     x_actual=np.matrix(np.zeros((4,1)))
-    P=np.eye(4)
+    #initial covariance matrix
+    P_pred=np.eye(4)
     #input with noise
     z_plot=np.matrix([[0,0]])
     x_plot=np.matrix([[0,0,0,0]]).T
-    x_true=np.matrix([[0,0,0,0]]).T
+    x_noise=np.matrix([[0,0,0,0]]).T
     while(1):
-        #predict
-        noise_u=input_model_noise()
+        #ideal dynamics of the system
         u=input_model()
-        #print(noise_u)
-        x_actual=motion_model(x_actual,u)
-        x_pred=motion_model(x,noise_u)
-        x_final=motion_model(x_wo_filter,noise_u)
-        x_true=np.hstack((x_true,x_final))
-        #print(x_plot[0,:],x_plot[1,:])
-        F=jacobianF(x,noise_u)
-        P_pred=F*P*F.T+Q
-    
-        #update
-        z_pred=observation_model(x_actual)
-        #print(z_pred)
-        z_plot=np.vstack((z_plot,z_pred))
-        plt.cla()
-        plt.plot(z_plot[:, 0], z_plot[:, 1], ".g")
-        plt.plot(np.array(x_true[0, :]).flatten(),
-                     np.array(x_true[1, :]).flatten(), "-k")
-        z_curr=x_pred[0:2]
-        y=z_curr-z_pred.T
-        H=jacobianH(x_actual)
+        x_ideal=motion_model(x_ideal,u)
+        #gps observation at this point.
+        z=observation_model(x_ideal)
+        
+        #ekf-predict
+        noise_u=input_model_noise()
+        F=jacobianF(x_pred,noise_u)
+        x_pred=motion_model(x_pred,noise_u)
+        P_pred=F*P_pred*F.T+Q
+        
+        #ekf-update
+        H=jacobianH(x_pred)
+        z_pred=observation_model(x_pred)
+        y=z-z_pred
+        print(y)
         K=P_pred*H.T*np.linalg.inv(H*P_pred*H.T+R)
-        x_post=x_actual+K*y
-        #print(x_post[0,0],x_post[0,1])
+        x_post=x_pred+K*y.T
+        P_post=(np.eye(4)-K*H)*P_pred
+
+        #plots
+        plt.cla()
         x_plot=np.hstack((x_plot,x_post))
-        #print(x_plot[0,:],x_plot[1,:])
-        plt.plot(np.array(x_plot[0, :]).flatten(),
-                     np.array(x_plot[1, :]).flatten(), "-b")
-        P_post=(np.eye(len(x_post))-K*H)*P_pred
-        # print(P_post)
-        print('\n')
+        plt.plot(np.array(x_plot[0, :]).flatten(),np.array(x_plot[1, :]).flatten(), "-b")
         plot_covariance_ellipse(x_post,P_post)
-        x=x_pred
-        P=P_pred
-        x_wo_filter=x_final
+        
+        z_plot=np.vstack((z_plot,z))
+        plt.plot(z_plot[:, 0], z_plot[:, 1], ".g")
+        
+        x_noise=np.hstack((x_noise,x_pred))
+        plt.plot(np.array(x_noise[0, :]).flatten(),np.array(x_noise[1, :]).flatten(), "-k")
+        
+        plot_covariance_ellipse(x_post,P_post)
+        
         plt.axis("equal")
         plt.grid(True)
         plt.pause(0.001)
