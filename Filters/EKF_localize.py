@@ -123,31 +123,6 @@ def jacobianH(x):
 
     return jH
 
-def plot_covariance_ellipse(xEst, PEst):
-    Pxy = PEst[0:2, 0:2]
-    eigval, eigvec = np.linalg.eig(Pxy)
-
-    if eigval[0] >= eigval[1]:
-        bigind = 0
-        smallind = 1
-    else:
-        bigind = 1
-        smallind = 0
-
-    t = np.arange(0, 2 * math.pi + 0.1, 0.1)
-    a = math.sqrt(eigval[bigind])
-    b = math.sqrt(eigval[smallind])
-    x = [a * math.cos(it) for it in t]
-    y = [b * math.sin(it) for it in t]
-    angle = math.atan2(eigvec[bigind, 1], eigvec[bigind, 0])
-    R = np.matrix([[math.cos(angle), math.sin(angle)],
-                   [-math.sin(angle), math.cos(angle)]])
-    fx = R * np.matrix([x, y])
-    px = np.array(fx[0, :] + xEst[0, 0]).flatten()
-    py = np.array(fx[1, :] + xEst[1, 0]).flatten()
-    plt.plot(px, py, "--r")
-
-
 def main():
     x_pred=np.matrix(np.zeros((4,1))) #x=[x y theta v](transpose)
     #initial covariance matrix
@@ -185,15 +160,12 @@ def main():
         plt.cla()
         x_plot=np.hstack((x_plot,x_post))
         plt.plot(np.array(x_plot[0, :]).flatten(),np.array(x_plot[1, :]).flatten(), "-b")
-        plot_covariance_ellipse(x_post,P_post)
         
         z_plot=np.vstack((z_plot,z))
         plt.plot(z_plot[:, 0], z_plot[:, 1], ".g")
         
         x_noise=np.hstack((x_noise,x_pred))
         plt.plot(np.array(x_noise[0, :]).flatten(),np.array(x_noise[1, :]).flatten(), "-k")
-        
-        plot_covariance_ellipse(x_post,P_post)
         
         plt.axis("equal")
         plt.grid(True)
