@@ -1,32 +1,22 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Mar 29 16:46:06 2019
+
+@author: kartikmadhira
+"""
+
 """
 Creating a Dijkstra's algorithm visualistion using priority queue(Heap)
-Note: This work is loosely based on AtsushiAkai's repo on PythonRobotics with modifications.
-(https://github.com/AtsushiSakai/PythonRobotics)
-
 """
 import matplotlib.pyplot as plt
 import heapq as heap
 import math
+import argparse
 
-show_animation=True
+animation=True
 
-def build_costmap(ox,oy,robot_reach):
-    #this is where we build a map with a 2D array
-    visit_map=[[False for _ in range(60)]for _ in range(60)]
-    #for every point in the map, calculate the distance from each of the 
-    #obstacle/border points in the map. If the distance is less than the 
-    #robot's reach, replace it with True val.
-    for x in range(60):
-        for y in range(60):
-            for obs_x,obs_y in zip(ox,oy):
-                #calculating the euclidean distance
-                d=math.sqrt((obs_x-x)**2+(obs_y-y)**2)
-                if(d<=robot_reach):
-                    visit_map[x][y]=True
-
-    return visit_map
-
-def motion_model():
+def motionModel():
     #steps that the robot will take for every queue element iteration
     motion = [[1, 0, 1],
               [0, 1, 1],
@@ -39,89 +29,221 @@ def motion_model():
     return motion
 
 
-def dijkstra(start_x,start_y,goal_x,goal_y,ox,oy,robot_reach):
+def dijkstra(startX,startY,goalX,goalY,visitMap):
     #heap initialize
     h=[]
-    #dictionary that'll store 
-    final_path=dict()
-    current_list=[]
+    #dictionary that'll store final path
+    finalPath=dict()
+    currentList=[]
     #every node in the heap will be of the form:
     #(cost,x,y,last node)
-    heap.heappush(h,(0,start_x,start_y,-1,-1))
-    motion=motion_model()
-    map_=build_costmap(ox,oy,robot_reach)
+    heap.heappush(h,(0,startX,startY,-1,-1))
+    motion=motionModel()
+    map_=visitMap
+    currX=[]
+    currY=[]
+    # map_=build_costmap(ox,oy,robot_reach).
     while 1:
         current=heap.heappop(h)
-        current_list.append(current)
-        #final_path[(current[3],current[4])]
+        currentList.append(current)
+        #finalPath[(current[3],current[4])]
         #print(current[1],current[2])
-        if show_animation:
-            plt.plot(current[1],current[2],"xr")
-            if len(current_list) % 10 == 0:
-                plt.pause(0.001)
-        if(current[1]==goal_x and current[2]==goal_y):
+        currX.append(current[1])
+        currY.append(current[2])
+
+        if animation:
+            if len(currentList) % 100 == 0:
+                plt.plot(currX,currY,"xr")
+                plt.pause(0.01)
+        if(current[1]==goalX and current[2]==goalY):
+            plt.plot(currX,currY,".r")
             print("Bullseye ;)")
             break
-        
+        if len(currentList) == 0:
+            plt.plot(currX,currY,".r")
+            plt.pause(0.001)
         #adding all jumps to the heap
         for i in range(len(motion)):
             if(map_[current[1]+motion[i][0]][current[2]+motion[i][1]]==False):
                 heap.heappush(h,(current[0]+motion[i][2],current[1]+motion[i][0],current[2]+motion[i][1],current[1],current[2]))
                 #dictionary ---> (current_node) ***mapped to***** (parent_node)
-                final_path[(current[1]+motion[i][0],current[2]+motion[i][1])]=(current[1],current[2])
+                finalPath[(current[1]+motion[i][0],current[2]+motion[i][1])]=(current[1],current[2])
                 map_[current[1]+motion[i][0]][current[2]+motion[i][1]]=True
+        if(len(h)==0):
+            print('No path is possible in these configurations')
+            return -1
     val=(0,0)
-    path_list=[]
+    pathList=[]
     #final path tracking
     print("Tracing the path:")
-    while ((goal_x,goal_y)!=(start_x,start_y)):
-        val=final_path[(goal_x,goal_y)]
-        plt.plot(val[0],val[1],"xc")
-        path_list.append([val[0],val[1]])
-        plt.pause(0.0001)
-        goal_x=val[0]
-        goal_y=val[1]
-    return path_list 
+    valX=[]
+    valY=[]
+    while ((goalX,goalY)!=(startX,startY)):
+        val=finalPath[(goalX,goalY)]
+        valX.append(val[0])
+        valY.append(val[1])
+
+        #plt.plot(val[0],val[1],"xc")
+        pathList.append([val[0],val[1]])
+        #plt.pause(0.0000001)
+        goalX=val[0]
+        goalY=val[1]
+    plt.plot(valX,valY,'.c')
+    plt.pause(15)
+    return pathList 
         
 import time
 def main():
     start=time.time()
-    start_x=10
-    start_y=10
-    goal_x=50
-    goal_y=50
-    robot_reach=1
-    print("Start at :",start_x,start_y)
-    ox=[]
-    oy=[]
-    for i in range(60):
-        ox.append(i)
-        oy.append(0.0)
-    for i in range(60):
-        ox.append(60.0)
-        oy.append(i)
-    for i in range(61):
-        ox.append(i)
-        oy.append(60.0)
-    for i in range(61):
-        ox.append(0.0)
-        oy.append(i)
-    for i in range(40):
-        ox.append(20.0)
-        oy.append(i)
-    for i in range(40):
-        ox.append(40.0)
-        oy.append(60.0 - i)
-   
-    if show_animation:
-        plt.plot(start_x,start_y,"xr")
-        plt.plot(goal_x,goal_y,"xr")
-        plt.plot(ox,oy,"xc")
-        plt.grid(True)
-        plt.axis("equal")
+    Parser = argparse.ArgumentParser()    
+    Parser.add_argument('--startx',type=int, default=21, help='The start x coordinate  in the range [1,249] for both (x,y)')
+    Parser.add_argument('--starty',type=int, default=21, help='The start y coordinate  in the range [1,249] for both (x,y)')
+    Parser.add_argument('--endx',type=int, default=230, help='The goal y coordinate  in the range [1,249] for both (x,y)')
+    Parser.add_argument('--endy',type=int, default=130, help='The goal y coordinate  in the range [1,249] for both (x,y)')
+    Parser.add_argument('--typeRobot',type=bool, default=1, help='1 for rigid robot, 0 for point robot')
+    Parser.add_argument('--resolution',type=int, default=1, help='resolution of the map')
+    Parser.add_argument('--robotRadius',type=int, default=5, help='radius of the robot')
+    Parser.add_argument('--clearance',type=int, default=0, help='clearance of the robot')
 
-    path=dijkstra(start_x,start_y,goal_x,goal_y,ox,oy,robot_reach)
+   
+    
+    Args = Parser.parse_args()
+    startx = Args.startx
+    endx=Args.endx
+    starty = Args.starty
+    endy=Args.endy
+    typeRobot=Args.typeRobot
+    robotRadius=Args.robotRadius
+    clearance=Args.clearance
+    robotRadius=robotRadius+clearance
+    startX=startx
+    startY=starty
+    goalX=endx
+    goalY=endy
+    if(startX<1 or startX>249):
+        print('coordinates are out of bounds, enter valid coordinates')
+        return -1
+    if(goalX<1 or goalX>249):
+        print('coordinates are out of bounds, enter valid coordinates')
+        return -1
+    if(startY<1 or startY>149):
+        print('coordinates are out of bounds, enter valid coordinates')
+        return -1
+    if(goalY<1 or goalY>149):
+        print('coordinates are out of bounds, enter valid coordinates')
+        return -1
+    print("Start at :",startX,startY)
+    pathX=[]
+    pathY=[]
+    pathTypeX=[]
+    pathTypeY=[]
+    visitMap=[[False for _ in range(151)]for _ in range(251)]
+
+    for i in range(250):
+        pathX.append(i)
+        pathY.append(0.0)
+        visitMap[i][0]=True
+
+    for i in range(150):
+        pathX.append(250.0)
+        pathY.append(i) 
+        #print(i)
+        visitMap[250][i]=True
+
+    for i in range(250):
+        pathX.append(i)
+        pathY.append(150.0)
+        visitMap[i][150]=True
+        
+    for i in range(150):
+        pathX.append(0.0)
+        pathY.append(i)
+        visitMap[0][i]=True
+
+    for x in range(250):
+        for y in range(150):
+            if(typeRobot):
+                if((x-140)**2*((robotRadius+6)**2)+(y-120)**2*((robotRadius+15)**2)-((robotRadius+15)**2)*((robotRadius+6)**2)<=0):         
+                    pathX.append(x)
+                    pathY.append(y)
+                    visitMap[x][y]=True
+    
+                if((((x-190)**2)+((y-130)**2)-((robotRadius+15)**2))<0):
+                    pathX.append(x)
+                    pathY.append(y)
+                    visitMap[x][y]=True
+    
+                if(-41*x-25*y+(135.88-robotRadius)*48.02<=0 and 38*x+23*y-(robotRadius+192.04)*44.42<=0 and 37*x-20*y-(145.06+robotRadius)*42.05<=0 and -y+(-robotRadius+15)<=0 and (4*x+38*y-2628-robotRadius*(math.sqrt(4**2+38**2))<=0 or -38*x+7*y+(-robotRadius+150.88)*38.64<=0)):
+                    pathX.append(x)
+                    pathY.append(y)
+                    visitMap[x][y]=True
+    
+                if(((y-(robotRadius+112.50))<0) and
+                   ((x-(robotRadius+100))<0) and
+                   ((-y+(-robotRadius+67.5)<0)) and
+                   ((-x+(-robotRadius+50)<0))):
+                    pathX.append(x)
+                    pathY.append(y)
+                    visitMap[x][y]=True
+                if(y-robotRadius<0):
+                    pathX.append(x)
+                    pathY.append(y)
+                    visitMap[x][y]=True
+                if(x-robotRadius<0):
+                    pathX.append(x)
+                    pathY.append(y)
+                    visitMap[x][y]=True
+                if(y-(-robotRadius+150)>0):
+                    pathX.append(x)
+                    pathY.append(y)
+                    visitMap[x][y]=True
+                if(x-(-robotRadius+250)>0):
+                    pathX.append(x)
+                    pathY.append(y)
+                    visitMap[x][y]=True
+                    
+            if(y-112.5<=0 and x-100<=0 and -y+67.5<=0 and -x+50<=0):
+                pathTypeX.append(x)
+                pathTypeY.append(y)
+                visitMap[x][y]=True
+
+            if((x-190)**2+(y-130)**2-15**2<=0):
+                pathTypeX.append(x)
+                pathTypeY.append(y)
+                visitMap[x][y]=True
+
+            if((x-140)**2*(6**2)+(y-120)**2*(15**2)-(15**2)*(6**2)<=0):
+                pathTypeX.append(x)
+                pathTypeY.append(y)
+                visitMap[x][y]=True
+
+            if(-41*x-25*y+6525<=0 and 38*x+23*y-8530<=0 and 37*x-20*y-6101<=0 and -y+15<=0 and (4*x+38*y-2628<=0 or -38*x+7*y+5830<=0)):
+                pathTypeX.append(x)
+                pathTypeY.append(y)
+                visitMap[x][y]=True
+
+    if(visitMap[startX][startY]==True):
+        print('The start node is in obstacle space, please enter valid start configuration')
+        return -1
+    if(visitMap[goalX][goalY]==True):
+        print('The goal node is in obstacle space, no path is possible in this goal configuration')
+        return -1 
+            
+    #if(visitMap[startX][]==True)        
+    fig,ax=plt.subplots()
+
+    if animation:
+        ax.plot(startX,startY,"xr")
+        ax.plot(goalX,goalY,"xr")
+        ax.plot(pathX,pathY,".b")
+        ax.plot(pathTypeX,pathTypeY,".k")
+
+        #ax.grid(True)
+        ax.set_ylim([0,160])
+        ax.set_xlim([0,300])
+        ax.axis("equal")
+    path=dijkstra(startX,startY,goalX,goalY,visitMap)
     end=time.time()
-    print("Time taken :", abs(start-end),"s")
+    #print("Time taken :", abs(start-end),"s")
 if __name__ == '__main__':
     main()    
